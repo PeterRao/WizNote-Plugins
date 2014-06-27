@@ -56,22 +56,22 @@
     }
 
     function parseMDContent(text) {
+        var renderer = new marked.Renderer();
+        renderer.code = function(code, lang) {
+            var ret = '<pre class="prettyprint linenums language-' + lang + '">';
+            ret+= '<code>' + code.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</code>';
+            ret+= '</pre>';
+            return ret;
+        };
         var htmlStr = marked(text, {
-            renderer: new marked.Renderer(),
+            renderer: renderer,
             gfm: true,
             tables: true,
             breaks: true,
             pedantic: false,
             sanitize: false,
             smartLists: true,
-            smartypants: false,
-            highlight: function(code, language) {
-                if (language) {
-                    return hljs.highlight(language.toLowerCase(), code).value;
-                } else {
-                    return hljs.highlightAuto(code).value;
-                }
-            }
+            smartypants: false
         });
         return htmlStr;
     }
@@ -80,7 +80,11 @@
         var parsedHtml = parseMDContent(text);
         return parsedHtml;
     }
-
+    function replaceCodeP2Div() {
+        $('p').each(function(){
+            $(this).replaceWith($('<div>' + this.innerHTML + '</div>'));
+        });
+    }
     function ParseContent(objHtmDoc) {
         try {
             $(objHtmDoc).find('img').each(function(index) {
@@ -116,10 +120,12 @@
         } catch(e) {
             console.log(e);
         }
+        replaceCodeP2Div();
         var text = removeMath(body.innerText);
         text = ParseMD2HTML(text);
         text = replaceMath(text);
         body.innerHTML = text;
+        prettyPrint();
         if (IsMathJax) {
             MathJax.Hub.Queue(
                 ["Typeset", MathJax.Hub, document.body],
