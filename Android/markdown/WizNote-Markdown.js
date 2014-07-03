@@ -2,6 +2,7 @@
     var WizMD_pluginPath = objApp.GetPluginPathByScriptFileName("WizNote-Markdown.js");
     var WizMD_inited = -1;
     var isMarkdown;
+    var isMarkdownAndMathJax;
 
     function WizIsMarkdown(doc) {
         try {
@@ -16,6 +17,11 @@
             return false;
         }
     }
+    function WizIsMarkdownAndMathJax(doc) {
+        var text = doc.body.innerText.replace(/\n/g,'\\n').replace(/\r\n?/g, "\n").replace(/```(.*\n)+?```/gm,'');
+        var SPLIT = /(\$\$?)[^$\n]+\1/;
+        return SPLIT.test(text);
+    }
 
     //---------------------------------------------------------------
     eventsHtmlDocumentComplete.add(OnMarkdownHtmlDocumentComplete);
@@ -23,6 +29,7 @@
 
     function OnMarkdownHtmlDocumentComplete(doc) {
         isMarkdown = WizIsMarkdown(doc);
+        isMarkdownAndMathJax =  WizIsMarkdownAndMathJax(doc);
         if (isMarkdown) {
             WizInitMarkdown(doc);
             WizMD_inited = 1;
@@ -38,6 +45,7 @@
         var oPart = doc.getElementsByTagName(part).item(0);
         var oElem = doc.createElement(elem_type);
         callbackfunc(oElem);
+        //oHead.appendChild(oElem); 
         oPart.insertBefore(oElem, null);
         return oElem;
     }
@@ -75,13 +83,23 @@
     */
 
     function WizInitMarkdown(doc) {
-        WizMDAppendCssSrc(doc, "markdown\\GitHub2.css");
-       
+
         WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "markdown\\marked.min.js");
         WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "google-code-prettify\\prettify.js");
         var jqueryScript = WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "markdown\\jquery.min.js");
+        WizMDAppendCssSrc(doc, "markdown\\GitHub2.css");
+
         jqueryScript.onload = function() {
-            WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "wiznote-markdown-inject.js");
+            var isMathJax = isMarkdownAndMathJax;
+            if (isMathJax) {
+                WizMDAppendScriptInnerHtml(doc, 'HEAD', "text/x-mathjax-config", "MathJax.Hub.Config({showProcessingMessages: false,tex2jax: { inlineMath: [['$','$'],['\\\\(','\\\\)']] },TeX: { equationNumbers: {autoNumber: 'AMS'} }});");
+                var MathJaxScript = WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML", true);
+                MathJaxScript.onload = function() {
+                    WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "wiznote-markdown-inject.js");
+                };
+            } else {
+                WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "wiznote-markdown-inject.js");
+            }
         };
     }
 })();
