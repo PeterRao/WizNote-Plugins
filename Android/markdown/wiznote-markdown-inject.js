@@ -209,7 +209,7 @@
                     braces--;
                 }
             } else {
-                if (block === "$$") {
+                if (block === inline || block === "$$") {
                     start = i;
                     end = block;
                     braces = 0;

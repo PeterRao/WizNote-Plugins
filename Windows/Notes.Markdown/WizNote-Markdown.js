@@ -1,9 +1,8 @@
-﻿;(function() {
-    var WizMD_pluginPath = objApp.GetPluginPathByScriptFileName("WizNote-Markdown.js");
-    var WizMD_inited = -1;
-    var isMarkdown;
+﻿;function WizMarkdown(document, path) {
+    var basePath = path;
+    var doc = document;
 
-    function WizIsMarkdown(doc) {
+    function isMarkdown() {
         try {
             var title = doc.title;
 
@@ -17,54 +16,40 @@
         }
     }
 
-    //---------------------------------------------------------------
-    eventsHtmlDocumentComplete.add(OnMarkdownHtmlDocumentComplete);
-
-
-    function OnMarkdownHtmlDocumentComplete(doc) {
-        isMarkdown = WizIsMarkdown(doc);
-        if (isMarkdown) {
-            WizInitMarkdown(doc);
-            WizMD_inited = 1;
-        }
-        else {
-            WizMD_inited = 0;
-        }
-    }
     //-----------------------------------------------------------------
     //-----------------------------------------------------------------
-    function WizMDInsertElem(doc, part, elem_type, callbackfunc) {
-        var WizMD_pluginPath = WizMD_pluginPath;
+    function insertElem(part, elem_type, callbackfunc) {
         var oPart = doc.getElementsByTagName(part).item(0);
         var oElem = doc.createElement(elem_type);
         callbackfunc(oElem);
+        //oHead.appendChild(oElem); 
         oPart.insertBefore(oElem, null);
         return oElem;
     }
     //--------------------------------------------
 
-    function WizMDAppendScriptSrc(doc, part, script_type, str, isServer) {
-        return WizMDInsertElem(doc, part, "script", function(oScript) {
+    function appendScriptSrc(part, script_type, str, isServer) {
+        return insertElem(part, "script", function(oScript) {
             oScript.type = script_type;
             if (isServer) {
                 oScript.src = str;
             } else {
-                oScript.src = ("file:///" + WizMD_pluginPath + str).replace(/\\/g, '/');
+                oScript.src = ("file:///" + basePath + str).replace(/\\/g, '/');
             }
         }
       );
     }
 
-    function WizMDAppendCssSrc(doc, str) {
-        WizMDInsertElem(doc, 'HEAD', "link", function(oCss) {
+    function appendCssSrc(str) {
+        insertElem('HEAD', "link", function(oCss) {
             oCss.rel = "stylesheet";
-            oCss.href = ("file:///" + WizMD_pluginPath + str).replace(/\\/g, '/');
+            oCss.href = ("file:///" + basePath + str).replace(/\\/g, '/');
         }
       );
     }
 
-    function WizMDAppendScriptInnerHtml(doc, part, script_type, innerHtmlStr) {
-        WizMDInsertElem(doc, part, "script", function(oScript) {
+    function appendScriptInnerHtml(part, script_type, innerHtmlStr) {
+        insertElem(part, "script", function(oScript) {
             oScript.type = script_type;
             oScript.innerHTML = innerHtmlStr;
         }
@@ -73,16 +58,87 @@
     /*
     *解析markdown内容
     */
+    function appendScriptSrc2(part, script_type, str, isServer, onLoadFunc) {
 
-    function WizInitMarkdown(doc) {
-        WizMDAppendCssSrc(doc, "markdown\\GitHub2.css");
-       
-        WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "markdown\\marked.min.js");
-        WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "google-code-prettify\\prettify.js");
-        var jqueryScript = WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "markdown\\jquery.min.js");
-        jqueryScript.onload = function() {
-            WizMDAppendScriptSrc(doc, 'HEAD', "text/javascript", "wiznote-markdown-inject.js");
-        };
+        var oPart = doc.getElementsByTagName(part).item(0);
+        var oElem = doc.createElement('script');
+
+        oElem.type = script_type;
+        if (!!onLoadFunc) {
+            oElem.onload = function() { onLoadFunc(); };
+        }
+        //
+        if (isServer) {
+            oElem.src = str;
+        } else {
+            oElem.src = ("file:///" + basePath + str).replace(/\\/g, '/');
+        }
+
+        oPart.insertBefore(oElem, null);
+        return oElem;
     }
-})();
 
+    function initMarkdown() {
+        appendCssSrc("markdown\\GitHub2.css");
+        appendScriptSrc('HEAD', "text/javascript", "markdown\\marked.min.js");
+        appendScriptSrc('HEAD', "text/javascript", "google-code-prettify\\prettify.js");
+
+        appendScriptSrc2('HEAD', "text/javascript", "markdown\\jquery.min.js", false, function() {
+            appendScriptSrc('HEAD', "text/javascript", "wiznote-markdown-inject.js");
+       });
+    }
+
+    function onDocumentComplete() {
+        if (isMarkdown()) {
+            initMarkdown();
+        }
+    }
+
+    function isRenderCompleted() {
+        try {
+            return doc.defaultView.WizIsMarkdownRendered();
+        }
+        catch(e) {
+
+        }
+    }
+
+    return {
+        onDocumentComplete: onDocumentComplete,
+        isRenderCompleted: isRenderCompleted
+    }
+
+}
+
+// var g_markdown;
+// function WizMD_OnDocumentComplete(path, doc) {
+//     if (!doc) {
+//         doc = document;
+//     }
+//     //
+//     g_markdown = new WizMarkdown(doc, path);
+//     g_markdown.onDocumentComplete();
+// }
+
+(function() {
+
+    if (!!objApp) {
+        try {
+            var WizMD_pluginPath = objApp.GetPluginPathByScriptFileName("WizNote-Markdown.js");
+            //---------------------------------------------------------------
+
+            function onDocumentComplete(doc) {
+                var mardown = new WizMarkdown(doc, WizMD_pluginPath);
+                mardown.onDocumentComplete();
+            }
+
+            if (eventsHtmlDocumentComplete) {
+                eventsHtmlDocumentComplete.add(onDocumentComplete);
+            }
+        }
+        catch(e) {
+
+        }
+    }
+    
+})();

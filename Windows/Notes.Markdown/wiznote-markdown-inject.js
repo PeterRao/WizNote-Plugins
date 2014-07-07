@@ -9,6 +9,34 @@
 
     var isMathJax = WizIsMathJax();
 
+    function WizOnRenderCompleted() {
+
+        if (window.customObject) {
+            try {
+                window.customObject.Execute("WizMD_OnRenderCompleted", null, null, null, null);
+            }
+            catch(e) {
+
+            }
+
+        }
+        else {
+            console.log("wiznote-markdown-inject, can't implementation customObject");
+        }
+    }
+
+    function WizOnMarkdownRendered() {
+        
+        if (!isMathJax) {
+            WizOnRenderCompleted();
+        }
+    }
+
+    function WizOnMathjaxRendered() {
+        
+        WizOnRenderCompleted();
+    }
+
     function WizIsMathJax() {
         var text = doc.body.innerText.replace(/\n/g,'\\n').replace(/\r\n?/g, "\n").replace(/```(.*\n)+?```/gm,'');
         var SPLIT = /(\$\$?)[^$\n]+\1/;
@@ -46,15 +74,22 @@
             .replace(/\&&#39;/g, "'");
     }
     function init() {
-        if (jQuery) {
+        if (!jQuery) {
+            console.log("markdown inject require jquery");
+            WizOnRenderCompleted();
+            return;         
+        }
+        //
+        try {
             doc.body.setAttribute("wiz_markdown_inited", "true");
-            g_markdownInited = true;
+            // g_markdownInited = true;
             ParseContent(document);
-        } else {
-            setTimeout(init(), 100);
+        }
+        catch(e) {
+            console.log("markdown-inject, unknown exception.");
+            WizOnRenderCompleted();
         }
     }
-
 
     function processMath(i, j) {
         var block = blocks.slice(i, j + 1).join("").replace(/&/g, "&amp;") // use
@@ -100,7 +135,7 @@
             smartypants: false
         }, function(err, content) {
             if (err) throw err;
-            console.log('md');
+            WizOnMarkdownRendered();
             callback(content);
         });
     }
@@ -158,7 +193,7 @@
                     MathJax.Hub.Queue(
                         ["Typeset", MathJax.Hub, document.body],
                         [function() {
-                            console.log('MathJax');
+                            WizOnMathjaxRendered();
                         }]
                     );
                 };
@@ -202,7 +237,7 @@
                 // Look for math start delimiters and when
                 // found, set up the end delimiter.
                 //
-                if (block === "$$") {
+                if (block === inline || block === "$$") {
                     start = i;
                     end = block;
                     braces = 0;

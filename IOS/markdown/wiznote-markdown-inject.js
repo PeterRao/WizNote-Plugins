@@ -1,16 +1,15 @@
-;(function() {
-    var doc = document;
-    var text; 
-    var body = doc.getElementsByTagName('BODY').item(0);
-
-    var math = [];
+﻿;(function() {
+    var isMathJax = wizIsMathJax();
     var inline = "$"; 
+
     var SPLIT = /(\$\$?|\\(?:begin|end)\{[a-z]*\*?\}|\\[\\{}$]|[{}]|(?:\n\s*)+|@@\d+@@)/i;
 
-    var isMathJax = WizIsMathJax();
-    
-    function WizIsMathJax() {
-        var text = doc.body.innerText.replace(/\n/g,'\\n').replace(/\r\n?/g, "\n").replace(/```(.*\n)+?```/gm,'');
+    var text;
+    var math = [];
+    var body = document.getElementsByTagName('BODY').item(0);
+
+    function wizIsMathJax() {
+        var text = document.body.innerText.replace(/\n/g,'\\n').replace(/\r\n?/g, "\n").replace(/```(.*\n)+?```/gm,'');
         var SPLIT = /(\$\$?)[^$\n]+\1/;
         return SPLIT.test(text);
     }
@@ -22,13 +21,25 @@
         oPart.insertBefore(oElem, null);
         return oElem;
     }
-    function wizAppendScriptSrc(doc, part, script_type, str) {
+    function wizAppendScriptSrc(doc, part, script_type, str, isServer) {
         return wizInsertElem(doc, part, "script", function(oScript) {
             oScript.type = script_type;
-            oScript.src = str;
+            if (isServer) {
+                oScript.src = str;
+            } else {
+                oScript.src = str.replace(/\\/g, '/');
+            }
         }
       );
     }
+    function wizAppendCssSrc(doc, str) {
+        wizInsertElem(doc, 'HEAD', "link", function(oCss) {
+            oCss.rel = "stylesheet";
+            oCss.href = str.replace(/\\/g, '/');
+        }
+      );
+    }
+
     function wizAppendScriptInnerHtml(doc, part, script_type, innerHtmlStr) {
         wizInsertElem(doc, part, "script", function(oScript) {
             oScript.type = script_type;
@@ -46,12 +57,20 @@
             .replace(/\&&#39;/g, "'");
     }
     function init() {
-        if (jQuery) {
-            document.body.setAttribute("wiz_markdown_inited", "true");
-            ParseContent(document);
-        } else {
-            setTimeout(init(), 100);
+        var sUserAgent = navigator.userAgent.toLowerCase();
+        var bIsIpad = sUserAgent.match(/ipad/i) == "ipad";
+        var path = "../../WizIphone7.app/";
+        if(bIsIpad){
+            path = "../../WizNoteIPad7.app/";
         }
+        var doc = document;
+        wizAppendScriptSrc(doc, 'HEAD', "text/javascript", path + "marked.min.js");
+        wizAppendScriptSrc(doc, 'HEAD', "text/javascript", path + "prettify.js");
+        var jqueryScript = wizAppendScriptSrc(doc, 'HEAD', "text/javascript", path + "jquery.min.js");
+        wizAppendCssSrc(doc, path + "github2.css");
+        jqueryScript.onload = function() {
+            parseContent(doc);
+        };
     }
 
 
@@ -98,10 +117,12 @@
             smartLists: true,
             smartypants: false
         });
+  console.log(text);
+  console.log(htmlStr);
         return htmlStr;
     }
 
-    function ParseMD2HTML(text) {
+    function parseMD2HTML(text) {
         var parsedHtml = parseMDContent(text);
         return parsedHtml;
     }
@@ -110,7 +131,7 @@
             $(this).replaceWith($('<div>' + this.innerHTML + '</div>'));
         });
     }
-    function ParseContent(objHtmDoc) {
+    function parseContent(objHtmDoc) {
         try {
             $(objHtmDoc).find('img').each(function(index) {
                 var span = $("<span></span>");
@@ -147,16 +168,16 @@
         }
         replaceCodeP2Div();
         var text = removeMath(body.innerText);
-        text = ParseMD2HTML(text);
+        text = parseMD2HTML(text);
         text = replaceMath(text);
         body.innerHTML = text;
         prettyPrint();
         if (isMathJax) {
             wizAppendScriptInnerHtml(doc, 'HEAD', "text/x-mathjax-config", "MathJax.Hub.Config({showProcessingMessages: false,tex2jax: { inlineMath: [['$','$'],['\\\\(','\\\\)']] },TeX: { equationNumbers: {autoNumber: 'AMS'} }});");
-            var MathJaxScript = wizAppendScriptSrc(doc, 'HEAD', "text/javascript", "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML");
+            var MathJaxScript = wizAppendScriptSrc(doc, 'HEAD', "text/javascript", "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML", true);
             MathJaxScript.onload = function() {
                 MathJax.Hub.Queue(
-                    ["Typeset", MathJax.Hub, document.body]
+                ["Typeset", MathJax.Hub, document.body],
                 );
             };
         }
@@ -194,10 +215,6 @@
                     braces--;
                 }
             } else {
-                //
-                // Look for math start delimiters and when
-                // found, set up the end delimiter.
-                //
                 if (block === inline || block === "$$") {
                     start = i;
                     end = block;
@@ -214,5 +231,5 @@
         }
         return blocks.join("");
     }
-    init(IsMathJax);
+    init();
 })();
