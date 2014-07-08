@@ -214,5 +214,5 @@
         }
         return blocks.join("");
     }
-    init(IsMathJax);
+    init();
 })();
