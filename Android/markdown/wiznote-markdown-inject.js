@@ -124,9 +124,9 @@
             $(this).replaceWith($('<div>' + this.innerHTML + '</div>'));
         });
     }
-    function parseContent(objHtmDoc) {
+    function parseContent(doc) {
         try {
-            $(objHtmDoc).find('img').each(function(index) {
+            $(doc).find('img').each(function(index) {
                 var span = $("<span></span>");
                 span[0].innerText = htmlUnEncode($(this)[0].outerHTML);
                 span.insertAfter($(this));
@@ -136,7 +136,7 @@
             console.log(e);
         }
         try {
-            $(objHtmDoc).find('a').each(function(index, link) {
+            $(doc).find('a').each(function(index, link) {
                 var href = $(link).attr('href');
                 if (href.indexOf("wiz:") === 0) {
                     var text = $(link).text();
@@ -148,7 +148,7 @@
             console.log(e);
         }
         try {
-            $(objHtmDoc).find('label.wiz-todo-label').each(function(index) {
+            $(doc).find('label.wiz-todo-label').each(function(index) {
                 // 防止innerText后产生换行符
                 var div = $("<span></span>");
                 var parent = $(this).parent();
@@ -167,11 +167,10 @@
         prettyPrint();
         if (isMathJax) {
             wizAppendScriptInnerHtml(doc, 'HEAD', "text/x-mathjax-config", "MathJax.Hub.Config({showProcessingMessages: false,tex2jax: { inlineMath: [['$','$'],['\\\\(','\\\\)']] },TeX: { equationNumbers: {autoNumber: 'AMS'} }});");
-            var MathJaxScript = wizAppendScriptSrc(doc, 'HEAD', "text/javascript", "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML", true);
+            var MathJaxScript = wizAppendScriptSrc(doc, 'HEAD', "text/javascript", "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML", true);
             MathJaxScript.onload = function() {
                 MathJax.Hub.Queue(
-                ["Typeset", MathJax.Hub, document.body],
-                ["resetEquationNumbers", MathJax.InputJax.TeX]
+                ["Typeset", MathJax.Hub, document.body]
                 );
             };
         }
