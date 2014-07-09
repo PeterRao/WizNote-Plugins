@@ -3,17 +3,17 @@
     var doc = document;
 
     function isMarkdown() {
-        try {
-            var title = doc.title;
-
-            if (-1 != title.indexOf(".md")) {
-                return true;
-            }
+        var title = doc.title;
+        
+        if (!title)
             return false;
-        }
-        catch (err) {
-            return false;
-        }
+        if (-1 != title.indexOf(".md "))
+            return true;
+        if (-1 != title.indexOf(".md@"))
+            return true;
+        if (title.match(/\.md$/i))
+            return true;
+        return false;
     }
 
     //-----------------------------------------------------------------
