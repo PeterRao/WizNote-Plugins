@@ -9,11 +9,19 @@
 
     var isMathJax = WizIsMathJax();
 
+    function WizclearMathJaxMsg() {
+        var msg = document.getElementById("MathJax_Message");
+        if (!!msg && !!msg.parentNode) {
+            msg.parentNode.removeChild(msg);
+        }
+    }
+
     function WizOnRenderCompleted() {
 
         if (window.customObject) {
             try {
-                window.customObject.Execute("WizMD_OnRenderCompleted", null, null, null, null);
+                WizclearMathJaxMsg();
+                window.customObject.Execute("Wiz_OnRenderCompleted", null, null, null, null);
             }
             catch(e) {
 
@@ -53,6 +61,7 @@
     function wizAppendScriptSrc(doc, part, script_type, str) {
         return wizInsertElem(doc, part, "script", function(oScript) {
             oScript.type = script_type;
+            oScript.className = "wiz-html-render-unsave";
             oScript.src = str;
         }
       );
@@ -60,6 +69,7 @@
     function wizAppendScriptInnerHtml(doc, part, script_type, innerHtmlStr) {
         wizInsertElem(doc, part, "script", function(oScript) {
             oScript.type = script_type;
+            oScript.className = "wiz-html-render-unsave";
             oScript.innerHTML = innerHtmlStr;
         }
       );
