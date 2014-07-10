@@ -83,7 +83,7 @@
         try {
             doc.body.setAttribute("wiz_markdown_inited", "true");
             // g_markdownInited = true;
-            ParseContent(document);
+            ParseContent();
         }
         catch(e) {
             console.log("markdown-inject, unknown exception.");
@@ -145,19 +145,15 @@
             $(this).replaceWith($('<div>' + this.innerHTML + '</div>'));
         });
     }
-    function ParseContent(objHtmDoc) {
+    function ParseContent() {
         try {
-            $(objHtmDoc).find('img').each(function(index) {
+            $(doc).find('img').each(function(index) {
                 var span = $("<span></span>");
                 span[0].innerText = htmlUnEncode($(this)[0].outerHTML);
                 span.insertAfter($(this));
                 $(this).remove();
             });
-        } catch (e) {
-            console.log(e);
-        }
-        try {
-            $(objHtmDoc).find('a').each(function(index, link) {
+            $(doc).find('a').each(function(index, link) {
                 var href = $(link).attr('href');
                 if (href.indexOf("wiz:") === 0) {
                     var text = $(link).text();
@@ -165,19 +161,15 @@
                     $(link).remove();
                 }
             });
-        } catch (e) {
-            console.log(e);
-        }
-        try {
-            $(objHtmDoc).find('label.wiz-todo-label').each(function(index) {
+            $(doc).find('label.wiz-todo-label').each(function(index) {
                 // 防止innerText后产生换行符
-                var div = $("<span></span>");
+                var span = $("<span></span>");
                 var parent = $(this).parent();
-                div[0].innerText = htmlUnEncode(parent[0].outerHTML);
-                div.insertAfter(parent);
+                span[0].innerText = htmlUnEncode(parent[0].outerHTML);
+                span.insertAfter(parent);
                 parent.remove();
             });
-        } catch(e) {
+        } catch (e) {
             console.log(e);
         }
         replaceCodeP2Div();
