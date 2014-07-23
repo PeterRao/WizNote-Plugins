@@ -1,0 +1,127 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title></title>
+
+    <script src="lib/codemirror.js"></script>
+
+    <script src="addon/mode/overlay.js"></script>
+    <script src="addon/search/searchcursor.js"></script>
+    <script src="addon/edit/matchbrackets.js"></script>
+    <script src="addon/display/fullscreen.js"></script>
+    <script src="addon/dialog/dialog.js"></script>
+    <script src="addon/fold/markdown-fold.js"></script>
+    <script src="addon/fold/foldgutter.js"></script>
+    <script src="addon/fold/foldcode.js"></script>
+    <script src="keymap/vim.js"></script>
+
+    <script src="mode/markdown/markdown.js"></script>
+    <script src="mode/gfm/gfm.js"></script>
+    <script src="mode/javascript/javascript.js"></script>
+    <script src="mode/css/css.js"></script>
+    <script src="mode/htmlmixed/htmlmixed.js"></script>
+    <script src="mode/clike/clike.js"></script>
+
+    <link rel="stylesheet" href="lib/codemirror.css">
+    <link rel="stylesheet" href="addon/dialog/dialog.css">
+    <link rel="stylesheet" href="addon/display/fullscreen.css">
+    <link rel="stylesheet" href="addon/fold/foldgutter.css">
+    <link rel="stylesheet" href="doc/docs.css">
+    <style type="text/css">
+          .CodeMirror {border-top: 1px solid #eee; border-bottom: 1px solid #eee;}
+    </style>
+    
+    <script>
+    window.onload = function () {
+        var objApp = window.external;
+        var objCommon = objApp.CreateWizObject("WizKMControls.WizCommonUI");
+
+        function getQueryString(name) {
+            if (location.href.indexOf("?") == -1 || location.href.indexOf(name + '=') == -1) {
+                return '';
+            }
+            var queryString = location.href.substring(location.href.indexOf("?") + 1);
+
+            var parameters = queryString.split("&");
+
+            var pos, paraName, paraValue;
+            for (var i = 0; i < parameters.length; i++) {
+                pos = parameters[i].indexOf('=');
+                if (pos == -1) { continue; }
+
+                paraName = parameters[i].substring(0, pos);
+                paraValue = parameters[i].substring(pos + 1);
+
+                if (paraName == name) {
+                    return unescape(paraValue.replace(/\+/g, " "));
+                }
+            }
+            return '';
+        };
+        
+        var guid = getQueryString("guid");
+        var kbGUID = getQueryString("kbguid");
+
+        var objDatabase = null;
+        if (kbGUID == "" || kbGUID == null) {
+            objDatabase = objApp.Database;
+        }
+        else {
+            objDatabase = objApp.GetGroupDatabase(kbGUID);
+        }
+
+        var objDocument = null;
+        try {
+            objDocument = objDatabase.DocumentFromGUID(guid);
+            document.title = "编辑 " + objDocument.Title.split('.')[0];
+        }
+        catch (err) {
+        }
+        
+        var code = "";
+        if (objDocument) {
+            document.body.innerHTML = objDocument.GetHtml();
+            code = document.body.innerText;
+            document.body.innerHTML = "";
+        }
+
+        CodeMirror.commands.save = function(cm){ 
+            if (objDocument) {
+                var doc = cm.getValue();
+                doc = doc.replace(/\n|\r|(\r\n)|(\u0085)|(\u2028)|(\u2029)/g, "<br/>").replace(/ /g, '\u00a0');
+                objDocument.UpdateDocument3(doc, 0);
+            }
+        };
+        var editor = CodeMirror(document.body, {
+            lineNumbers: true,
+            mode: "gfm",
+            theme: "default",
+            vimMode: true,
+            matchBrackets: true,
+            showCursorWhenSelecting: true,
+            foldGutter: true,
+            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+            lineWrapping: true,
+            autofocus: true,
+            fullScreen: true,
+            extraKeys: {
+                "Ctrl-C": false,
+                "Ctrl-V": false,
+                "Esc": function (cm) {
+                    alert("est");
+                },
+                "Ctrl-s": function (cm) {
+                    alert("save");
+                }
+            }
+        });
+        editor.setValue(code);
+    }
+    </script>
+</head>
+<body>
+
+</body>
+</html>
