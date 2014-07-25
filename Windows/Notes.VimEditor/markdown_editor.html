@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <title></title>
+  <script src="libs/jquery/jquery.min.js"></script>
+
+  <script src="libs/codemirror/lib/codemirror.js"></script>
+  <script src="libs/codemirror/addon/mode/overlay.js"></script>
+  <script src="libs/codemirror/addon/search/searchcursor.js"></script>
+  <script src="libs/codemirror/addon/edit/matchbrackets.js"></script>
+  <script src="libs/codemirror/addon/display/fullscreen.js"></script>
+  <script src="libs/codemirror/addon/dialog/dialog.js"></script>
+  <script src="libs/codemirror/addon/fold/markdown-fold.js"></script>
+  <script src="libs/codemirror/addon/fold/foldgutter.js"></script>
+  <script src="libs/codemirror/addon/fold/foldcode.js"></script>
+  <script src="libs/codemirror/keymap/vim.js"></script>
+  <script src="libs/codemirror/mode/markdown/markdown.js"></script>
+  <script src="libs/codemirror/mode/gfm/gfm.js"></script>
+  <link rel="stylesheet" href="libs/codemirror/lib/codemirror.css">
+  <link rel="stylesheet" href="libs/codemirror/addon/dialog/dialog.css">
+  <link rel="stylesheet" href="libs/codemirror/addon/display/fullscreen.css">
+  <link rel="stylesheet" href="libs/codemirror/addon/fold/foldgutter.css">
+
+  <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full"></script>
+  <script src="libs/markdown/marked.min.js"></script>
+  <script src="libs/markdown/wiznote-markdown-inject.js"></script>
+  <link rel="stylesheet" href="libs/markdown/github2.css">
+
+  <link rel="stylesheet" href="markdown_editor.css">
+
+  <script>
+    var objApp = window.external;
+    var pluginPath = objApp.GetPluginPathByScriptFileName("markdown_editor.js");
+    var setting = pluginPath + "plugin.ini";
+  </script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ showProcessingMessages: false, tex2jax: { inlineMath: [['$','$'],['\\\\(','\\\\)']], skipTags: ['script','noscript','style','textarea','pre','code'], TeX: { equationNumbers: {autoNumber: 'AMS'}} } });
+  </script>
+  <script>
+    // Load document
+    function getQueryString(name) {
+      if (location.href.indexOf("?") == -1 || location.href.indexOf(name + '=') == -1) {
+        return '';
+      }
+      var queryString = location.href.substring(location.href.indexOf("?") + 1);
+      var parameters = queryString.split("&");
+      var pos, paraName, paraValue;
+      for (var i = 0; i < parameters.length; i++) {
+        pos = parameters[i].indexOf('=');
+        if (pos == -1) {
+          continue;
+        }
+        paraName = parameters[i].substring(0, pos);
+        paraValue = parameters[i].substring(pos + 1);
+        if (paraName == name) {
+          return unescape(paraValue.replace(/\+/g, " "));
+        }
+      }
+      return '';
+    };
+
+    var guid = getQueryString("guid");
+    var kbGUID = getQueryString("kbguid");
+    var objDatabase = null;
+    if (kbGUID == "" || kbGUID == null) {
+      objDatabase = objApp.Database;
+    } else {
+      objDatabase = objApp.GetGroupDatabase(kbGUID);
+    }
+
+    var objDocument = null;
+    try {
+      objDocument = objDatabase.DocumentFromGUID(guid);
+      document.title = objApp.LoadStringFromFile(setting, "Edit") + " " + objDocument.Title.split('.')[0];
+    } catch (err) {}
+  </script>
+</head>
+
+<body>
+  <div id="in">
+    <form>
+      <textarea id="code">
+      </textarea>
+    </form>
+  </div>
+  <div id="out" style="display: none;">
+  </div>
+
+  <script>
+    // Extract Markdown text from HTML
+    var code = "";
+    if (objDocument) {
+      var t = $("#in")[0].innerHTML;
+      $("#in")[0].innerHTML = objDocument.GetHtml();
+      code = $("#in")[0].innerText;
+      $("#in")[0].innerHTML = t;
+    }
+
+    editor = CodeMirror.fromTextArea(document.getElementById('code'), {
+      theme: "default",
+      lineNumbers: true,
+      vimMode: true,
+      mode: "gfm",
+      matchBrackets: true,
+      showCursorWhenSelecting: true,
+      foldGutter: true,
+      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+      lineWrapping: true,
+      autofocus: true,
+      fullScreen: true,
+      extraKeys: {
+        "Ctrl-C": false,
+        "Ctrl-V": false,
+        "Ctrl-P": function(cm) {
+          if (preview) {
+            editor.setSize('100%');
+          } else {
+            editor.setSize('50%');
+            document.getElementById("out").style.display = "";
+          }
+          preview = !preview;
+          updateVisual();
+        }
+      }
+    });
+    editor.setValue(code);
+
+    // Live preview
+    var modified = false;
+    var preview = false;
+    var updateTimeout;
+    editor.on("change", function(cm) {
+      modified = true;
+      if (preview) {
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(updateVisual, 1000);
+      }
+    });
+
+    function updateVisual() {
+      if (preview) {
+        var content = editor.getValue();
+        var text = removeMath(content);
+        text = parseMDContent(text);
+        text = replaceMath(text);
+        $('#out')[0].innerHTML = text;
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+      }
+    };
+
+    // Toggle preview window
+    function togglePreview() {
+        if (preview) {
+          editor.setSize('100%');
+        } else {
+          editor.setSize('50%');
+          document.getElementById("out").style.display = "";
+        }
+        preview = !preview;
+        updateVisual();
+      }
+
+    // Save before closing tab
+    var saveBeforeClose = false;
+    var savePrompt = objApp.LoadStringFromFile(setting, "SavePrompt");
+    function onBeforeCloseTab_MarkdownEditor() {
+      if (modified && (saveBeforeClose || 6 == objApp.Window.ShowMessage(savePrompt, "Wiz", 0x04 + 0x20))) {
+        saveDocument(editor);
+      }
+    };
+
+    saveDocument = function (cm) {
+        if (objDocument) {
+            var doc = cm.getValue();
+            doc = doc.replace(/\n|\r|(\r\n)|(\u0085)|(\u2028)|(\u2029)/g, "<br/>").replace(/ /g, '\u00a0');
+            objDocument.UpdateDocument3(doc, 0);
+            modified = false;
+        }
+    };
+    CodeMirror.commands.save = saveDocument;
+
+     // Settings
+    var objCommon = objApp.CreateWizObject("WizKMControls.WizCommonUI");
+    var theme = objCommon.GetValueFromIni(setting, "Settings", "Theme");
+    editor.setOption("theme", theme);
+    if (theme != "default") {
+      $("head").append('<link rel="stylesheet" href="libs/codemirror/theme/' + theme + '.css">');
+    }
+
+    if (objCommon.GetValueFromIni(setting, "Settings", "VimModeEnable") == '1') {
+      editor.setOption("vimMode", true);
+    } else {
+      editor.setOption("vimMode", false);
+    }
+    if (objCommon.GetValueFromIni(setting, "settings", "SaveBeforeClose") == '1') {
+      saveBeforeClose = true;
+    }
+  </script>
+
+</body>
+
+</html>
+
