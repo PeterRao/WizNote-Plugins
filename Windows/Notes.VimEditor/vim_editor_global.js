@@ -1,6 +1,6 @@
 
 
-function BaiduEditorOnTabclose(objHtmlDocument, objWizDocument) {
+function VimEditorOnTabClose(objHtmlDocument, objWizDocument) {
     //
     if (objWizDocument)
         return;
@@ -9,11 +9,11 @@ function BaiduEditorOnTabclose(objHtmlDocument, objWizDocument) {
         return;
     //
     try {
-        objHtmlDocument.defaultView.eval("if (onBeforeCloseTab_BaiduEditor) onBeforeCloseTab_BaiduEditor();");
+        objHtmlDocument.defaultView.eval("if (onBeforeCloseTab_VimEditor) onBeforeCloseTab_VimEditor();");
     }
     catch (err) {
     }
 
-}
+};
 
-eventsTabClose.add(BaiduEditorOnTabclose);
+eventsTabClose.add(VimEditorOnTabClose);
