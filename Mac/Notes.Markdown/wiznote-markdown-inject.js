@@ -118,22 +118,16 @@
                 span.insertAfter($(this));
                 $(this).remove();
             });
-        } catch (e) {
-            console.log(e);
-        }
-        try {
-            $(objHtmDoc).find('a').each(function(index, link) {
-                var href = $(link).attr('href');
+            $(doc).find('a').each(function(index, link) {
+                var linkObj = $(link);
+                var href = linkObj.attr('href');
                 if (href.indexOf("wiz:") === 0) {
-                    var text = $(link).text();
-                    $(link).after('<span>[' + text + '](' + href + ')</span>');
-                    $(link).remove();
+                    var span = $("<span></span>");
+                    span[0].innerText = htmlUnEncode(linkObj[0].outerHTML);
+                    span.insertAfter(linkObj);
+                    linkObj.remove();
                 }
             });
-        } catch (e) {
-            console.log(e);
-        }
-        try {
             $(objHtmDoc).find('label.wiz-todo-label').each(function(index) {
                 // 防止innerText后产生换行符
                 var span = $("<span></span>");
@@ -145,16 +139,6 @@
         } catch(e) {
             console.log(e);
         }
-        // try {
-        //     $(objHtmDoc).find('ol').each(function(index, link) {
-        //         var div = $("<div></div>");
-        //         div[0].innerText = htmlUnEncode($(this)[0].outerHTML);
-        //         div.insertAfter($(this));
-        //         $(this).remove();
-        //     });
-        // } catch (e) {
-        //     console.log(e);
-        // }
         replaceCodeP2Div();
         var text = removeMath(body.innerText);
         text = ParseMD2HTML(text);

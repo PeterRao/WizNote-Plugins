@@ -164,11 +164,13 @@
                 $(this).remove();
             });
             $(doc).find('a').each(function(index, link) {
-                var href = $(link).attr('href');
+                var linkObj = $(link);
+                var href = linkObj.attr('href');
                 if (href.indexOf("wiz:") === 0) {
-                    var text = $(link).text();
-                    $(link).after('<span>[' + text + '](' + href + ')</span>');
-                    $(link).remove();
+                    var span = $("<span></span>");
+                    span[0].innerText = htmlUnEncode(linkObj[0].outerHTML);
+                    span.insertAfter(linkObj);
+                    linkObj.remove();
                 }
             });
             $(doc).find('label.wiz-todo-label').each(function(index) {
