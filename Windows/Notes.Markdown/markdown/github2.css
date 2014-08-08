@@ -513,7 +513,9 @@ pre.prettyprint.linenums {
 /* Specify class=linenums on a pre to get line numbering */
 ol.linenums {
   color: #1E347B;
-  margin: 0 0 0 40px; }
+  margin: 0 0 0 40px;
+  padding-left: 30px !important;
+}
 
 ol.linenums li {
   color: #BEBEC5;

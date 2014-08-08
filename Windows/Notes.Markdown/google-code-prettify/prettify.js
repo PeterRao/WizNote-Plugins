@@ -1095,6 +1095,7 @@ var prettyPrint;
   
     var ol = document.createElement('ol');
     ol.className = 'linenums';
+    ol.style.paddingLeft = '0';
     var offset = Math.max(0, ((opt_startLineNum - 1 /* zero index */)) | 0) || 0;
     for (var i = 0, n = listItems.length; i < n; ++i) {
       li = listItems[i];
