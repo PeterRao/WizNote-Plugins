@@ -452,10 +452,6 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
 pre, code {
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
-pre ol.linenums {
-    margin-left: 0;
-}
-
 .pln {
   color: #48484C; }
 
@@ -505,32 +501,35 @@ pre ol.linenums {
 pre.prettyprint {
   background-color: #F7F7F9;
   padding: 10px;
-  border: 1px solid #E1E1E8; }
-
-pre.prettyprint.linenums {
-  box-shadow: 40px 0 0 #FBFBFC inset, 41px 0 0 #ECECF0 inset; }
-
-/* Specify class=linenums on a pre to get line numbering */
-pre.prettyprint ol.linenums {
-  color: #1E347B;
-  margin: 0 0 0 40px;
-  padding-left: 30px !important;
+  border: 1px solid #E1E1E8; 
 }
 
-pre.prettyprint ol.linenums li {
+pre.prettyprint.linenums {
+  box-shadow: 40px 0 0 #FBFBFC inset, 41px 0 0 #ECECF0 inset; 
+}
+
+/* Specify class=linenums on a pre to get line numbering */
+pre.prettyprint.linenums ol.linenums {
+  color: #1E347B;
+  padding-left: 30px !important;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+pre.prettyprint.linenums ol.linenums li {
   color: #BEBEC5;
   line-height: 18px;
   padding-left: 12px !important; 
 }
 
-pre.prettyprint ol.linenums li.L0,
-pre.prettyprint ol.linenums li.L1,
-pre.prettyprint ol.linenums li.L2,
-pre.prettyprint ol.linenums li.L3,
-pre.prettyprint ol.linenums li.L5,
-pre.prettyprint ol.linenums li.L6,
-pre.prettyprint ol.linenums li.L7,
-pre.prettyprint ol.linenums li.L8,
-pre.prettyprint ol.linenums li.L9 {
+pre.prettyprint.linenums ol.linenums li.L0,
+pre.prettyprint.linenums ol.linenums li.L1,
+pre.prettyprint.linenums ol.linenums li.L2,
+pre.prettyprint.linenums ol.linenums li.L3,
+pre.prettyprint.linenums ol.linenums li.L5,
+pre.prettyprint.linenums ol.linenums li.L6,
+pre.prettyprint.linenums ol.linenums li.L7,
+pre.prettyprint.linenums ol.linenums li.L8,
+pre.prettyprint.linenums ol.linenums li.L9 {
   list-style-type: decimal !important; 
 }
