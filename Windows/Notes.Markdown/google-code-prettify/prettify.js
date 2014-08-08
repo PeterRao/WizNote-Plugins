@@ -1103,6 +1103,7 @@ var prettyPrint;
       // color odd/even rows, or any other row pattern that
       // is co-prime with 10.
       li.style.listStyleType = "none";
+      li.style.paddingLeft = '0';
       li.className = 'L' + ((i + offset) % 10);
       if (!li.firstChild) {
         li.appendChild(document.createTextNode('\xA0'));

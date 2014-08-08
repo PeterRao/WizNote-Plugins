@@ -520,7 +520,8 @@ ol.linenums {
 ol.linenums li {
   color: #BEBEC5;
   line-height: 18px;
-  padding-left: 12px; }
+  padding-left: 12px !important; 
+}
 
 li.L0,
 li.L1,
