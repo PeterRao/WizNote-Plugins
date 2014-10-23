@@ -1,4 +1,4 @@
-﻿;function WizMarkdown(document, path) {
+﻿function WizMarkdown(document, path) {
     var basePath = path;
     var doc = document;
 
@@ -80,7 +80,8 @@
 
     function initMarkdown() {
         appendCssSrc("markdown\\GitHub2.css");
-        appendScriptSrc('HEAD', "text/javascript", "markdown\\marked.min.js");
+        appendScriptSrc('HEAD', "text/javascript", "markdown\\Markdown.Converter.js");
+        appendScriptSrc('HEAD', "text/javascript", "markdown\\Markdown.Extra.js");
         appendScriptSrc('HEAD', "text/javascript", "google-code-prettify\\prettify.js");
 
         appendScriptSrc2('HEAD', "text/javascript", "markdown\\jquery.min.js", false, function() {
@@ -106,7 +107,7 @@
     return {
         onDocumentComplete: onDocumentComplete,
         isRenderCompleted: isRenderCompleted
-    }
+    };
 
 }
 
