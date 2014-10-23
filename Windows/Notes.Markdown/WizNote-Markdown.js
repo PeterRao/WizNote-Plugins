@@ -80,10 +80,10 @@
 
     function initMarkdown() {
         appendCssSrc("markdown\\GitHub2.css");
-        appendScriptSrc('HEAD', "text/javascript", "markdown\\Markdown.Converter.js");
-        appendScriptSrc('HEAD', "text/javascript", "markdown\\Markdown.Extra.js");
-        appendScriptSrc('HEAD', "text/javascript", "google-code-prettify\\prettify.js");
-
+        appendScriptSrc2('HEAD', "text/javascript", "markdown\\Markdown.Converter.js", false, function() {
+            appendScriptSrc('HEAD', "text/javascript", "google-code-prettify\\prettify.js");
+            appendScriptSrc('HEAD', "text/javascript", "markdown\\Markdown.Extra.js");
+        });
         appendScriptSrc2('HEAD', "text/javascript", "markdown\\jquery.min.js", false, function() {
             appendScriptSrc('HEAD', "text/javascript", "wiznote-markdown-inject.js");
        });
